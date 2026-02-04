@@ -85,4 +85,4 @@ http://127.0.0.1:5000
 
 **Usama Rana**
 Frontend Developer | Data Analyst | Computer Vision Enthusiast
-GitHub: [https://github.com/your-username](https://github.com/your-username)
+GitHub: [https://github.com/UsamaZulfiqar-7
