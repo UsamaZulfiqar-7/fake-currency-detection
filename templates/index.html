@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>AI Fake Currency Detection</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Lottie -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <!-- Particles -->
+    <canvas id="particles"></canvas>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle"
+        onclick="toggleTheme()">
+
+        🌙
+
+    </div>
+
+    <!-- Floating Icons -->
+    <div class="floating-icons">
+        💸 💵 💰 🪙
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="container">
+
+        <!-- Lottie Animation -->
+        <lottie-player
+            src="https://assets4.lottiefiles.com/packages/lf20_jcikwtux.json"
+            background="transparent"
+            speed="1"
+            style="width: 130px; height:130px; margin:auto;"
+            loop
+            autoplay>
+
+        </lottie-player>
+
+        <!-- Typing Heading -->
+        <h1 id="typing-text"></h1>
+
+        <p class="subtitle">
+            AI Powered Fake Currency Detection Dashboard
+        </p>
+
+        <!-- Dashboard Cards -->
+        <div class="dashboard-cards">
+
+            <div class="card">
+                <h3>Total Scans</h3>
+                <p>152</p>
+            </div>
+
+            <div class="card">
+                <h3>Fake Notes</h3>
+                <p>37</p>
+            </div>
+
+            <div class="card">
+                <h3>Real Notes</h3>
+                <p>115</p>
+            </div>
+
+            <div class="card">
+                <h3>Accuracy</h3>
+                <p>96%</p>
+            </div>
+
+        </div>
+
+        <!-- Upload Form -->
+        <form action="/predict"
+            method="post"
+            enctype="multipart/form-data">
+
+            <!-- Drag Area -->
+            <div class="drag-area"
+                id="dragArea">
+
+                <div class="icon">📤</div>
+
+                <h3>Drag & Drop Currency Image</h3>
+
+                <span>OR</span>
+
+                <input type="file"
+                    name="file"
+                    id="fileInput"
+                    hidden
+                    required>
+
+                <button type="button"
+                    onclick="document.getElementById('fileInput').click()">
+
+                    Browse File
+
+                </button>
+
+                <p id="fileName"></p>
+
+                <!-- Preview -->
+                <img id="previewImage">
+
+            </div>
+
+            <!-- Predict -->
+            <button type="submit"
+                class="predict-btn"
+                onclick="showLoader()">
+
+                🔍 Detect Currency
+
+            </button>
+
+        </form>
+
+        <!-- Loader -->
+        <div class="loader-container"
+            id="loader">
+
+            <div class="scanner-line"></div>
+
+            <p>Scanning Currency...</p>
+
+        </div>
+
+       <!-- Result -->
+{% if result %}
+
+<div class="result">
+
+    <h2>{{ result }}</h2>
+
+    <img src="{{ url_for('static', filename=image) }}"
+        alt="Uploaded Image">
+
+    <!-- Currency Info -->
+    <div class="currency-info">
+
+
+        <div class="info-box">
+
+            <h4>Security Status</h4>
+
+            <p>{{ security_status }}</p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+    <!-- Sound -->
+    <audio id="scanSound">
+        <source src="{{ url_for('static', filename='scan.mp3') }}"
+            type="audio/mpeg">
+    </audio>
+
+    <!-- JavaScript -->
+    <script>
+
+        // =========================
+        // Typing Animation
+        // =========================
+
+        const text = "AI Powered Fake Currency Detection...";
+        let index = 0;
+
+        function typeText(){
+
+            if(index < text.length){
+
+                document.getElementById("typing-text").innerHTML += text.charAt(index);
+
+                index++;
+
+                setTimeout(typeText, 70);
+
+            }
+
+        }
+
+        typeText();
+
+        // =========================
+        // Drag & Drop + Preview
+        // =========================
+
+        const dragArea = document.getElementById("dragArea");
+        const fileInput = document.getElementById("fileInput");
+        const fileName = document.getElementById("fileName");
+        const preview = document.getElementById("previewImage");
+
+        dragArea.addEventListener("dragover",(e)=>{
+
+            e.preventDefault();
+
+            dragArea.classList.add("active");
+
+        });
+
+        dragArea.addEventListener("dragleave",()=>{
+
+            dragArea.classList.remove("active");
+
+        });
+
+        dragArea.addEventListener("drop",(e)=>{
+
+            e.preventDefault();
+
+            fileInput.files = e.dataTransfer.files;
+
+            showPreview(fileInput.files[0]);
+
+            dragArea.classList.remove("active");
+
+        });
+
+        fileInput.addEventListener("change",()=>{
+
+            showPreview(fileInput.files[0]);
+
+        });
+
+        function showPreview(file){
+
+            fileName.innerText = file.name;
+
+            const reader = new FileReader();
+
+            reader.onload = function(e){
+
+                preview.src = e.target.result;
+
+                preview.style.display = "block";
+
+            }
+
+            reader.readAsDataURL(file);
+
+        }
+
+        // =========================
+        // Loader + Sound
+        // =========================
+
+        function showLoader(){
+
+            document.getElementById("loader").style.display = "flex";
+
+            document.getElementById("scanSound").play();
+
+        }
+
+        // =========================
+        // Theme Toggle
+        // =========================
+
+        function toggleTheme(){
+
+    document.body.classList.toggle("light-mode");
+
+    const toggleBtn = document.querySelector(".theme-toggle");
+
+    if(document.body.classList.contains("light-mode")){
+
+        toggleBtn.innerHTML = "☀️";
+
+    }else{
+
+        toggleBtn.innerHTML = "🌙";
+
+    }
+
+}
+
+        // =========================
+        // Particles
+        // =========================
+
+        const canvas = document.getElementById("particles");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+
+        class Particle{
+
+            constructor(){
+
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+
+                this.size = Math.random() * 3 + 1;
+
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+
+            }
+
+            update(){
+
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if(this.x > canvas.width) this.x = 0;
+                if(this.x < 0) this.x = canvas.width;
+
+                if(this.y > canvas.height) this.y = 0;
+                if(this.y < 0) this.y = canvas.height;
+
+            }
+
+            draw(){
+
+                ctx.beginPath();
+
+                ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+
+                ctx.fillStyle = "rgba(0,255,255,0.8)";
+
+                ctx.fill();
+
+            }
+
+        }
+
+        function initParticles(){
+
+            particlesArray = [];
+
+            for(let i=0;i<100;i++){
+
+                particlesArray.push(new Particle());
+
+            }
+
+        }
+
+        function animateParticles(){
+
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            for(let i=0;i<particlesArray.length;i++){
+
+                particlesArray[i].update();
+
+                particlesArray[i].draw();
+
+            }
+
+            requestAnimationFrame(animateParticles);
+
+        }
+
+        initParticles();
+
+        animateParticles();
+
+    </script>
+
+</body>
+
+</html>

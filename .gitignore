@@ -1,0 +1,30 @@
+# Python Bytecode and Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Large Machine Learning Models
+model/*.pkl
+model/*.h5
+model/*.onnx
+
+# Datasets and Runtime Uploads
+static/dataset/
+static/uploads/*
+!static/uploads/.gitkeep
+
+# IDE Settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
