@@ -1,6 +1,6 @@
 # AI-Powered Fake Currency Detection Dashboard
 
-A modern, responsive web application for classifying banknotes as **Authentic (Real)** or **Suspicious (Fake)**. Built using a high-performance Python Flask backend, OpenCV for computer vision feature extraction, and Scikit-Learn for Support Vector Machine (SVM) classification.
+A modern, responsive web application for classifying banknotes as **Authentic (Real)** or **Suspicious (Fake)**. Built using a Python Flask backend, OpenCV for preprocessing, and a Convolutional Neural Network (CNN) using TensorFlow/Keras.
 
 ---
 
@@ -9,7 +9,7 @@ A modern, responsive web application for classifying banknotes as **Authentic (R
 * **Interactive Glassmorphism Dashboard**: Sleek and premium dark/light mode dashboard with floating currency particles and vector scanner animations.
 * **Drag-and-Drop Uploader**: Seamless client-side drag-and-drop file interface with real-time image preview.
 * **Visual Scanner Simulation**: Synchronous loading bar animation synchronized with an optional auditory indicator upon scanning.
-* **Classical Machine Learning Pipeline**: Combines Canny edge detection and normalized grayscale histograms to construct a classification feature space, processed by a Linear SVM.
+* **Convolutional Neural Network**: Uses a CNN-based image classifier for more robust currency authentication.
 
 ---
 
@@ -17,7 +17,7 @@ A modern, responsive web application for classifying banknotes as **Authentic (R
 
 * **Backend**: Flask (Python)
 * **Computer Vision**: OpenCV (`opencv-python`)
-* **Machine Learning**: Scikit-Learn (`scikit-learn`), NumPy, Joblib
+* **Machine Learning**: TensorFlow (`tensorflow`), NumPy
 * **Frontend**: HTML5, Vanilla CSS3 (Custom Glassmorphism), ES6 JavaScript
 
 ---
@@ -27,7 +27,7 @@ A modern, responsive web application for classifying banknotes as **Authentic (R
 ```text
 fake-currency-detection/
 ├── model/                     # Serialized machine learning models (Ignored in Git)
-│   └── svm_model.pkl          # Trained Linear SVM model file (~654 MB)
+│   └── cnn_model.h5           # Trained CNN model file
 ├── static/                    # Public web asset directory
 │   ├── dataset/               # Image training dataset (Ignored in Git)
 │   │   ├── Real Notes/
@@ -51,16 +51,14 @@ fake-currency-detection/
 
 ### 1. Preprocessing & Feature Extraction
 Banknote verification is executed via the `extract_features` pipeline:
-1. **Grayscale Conversion**: The input image is converted to grayscale to isolate intensity patterns and remove color variance.
-2. **Resizing**: Standardized to $256 \times 256$ pixels to maintain feature shape parity.
-3. **Canny Edge Detection**: Identifies fine structural boundaries, security thread patterns, and printing details. The resulting edge-map is flattened into a 65,536-dimensional vector.
-4. **Normalized Histogram**: Computes a 256-bin grayscale color histogram to capture the global distribution of light.
-5. **Concatenation**: Concatenates both arrays into a **65,792-dimensional** single Numpy feature vector.
+1. **Grayscale Conversion**: The input image is converted to grayscale to isolate intensity patterns and reduce color noise.
+2. **Resizing**: Standardized to 256×256 pixels to create consistent CNN input.
+3. **Normalization**: Pixel values are scaled to the [0, 1] range before inference.
 
-### 2. SVM Classification
-The feature vector is processed by a pre-trained **Linear Support Vector Classifier (SVC)** to determine authenticity:
-* **Label `0`**: Authentic Banknote ✅
-* **Label `1`**: Suspicious / Fake Banknote ❌
+### 2. CNN Classification
+The preprocessed image is passed through a Convolutional Neural Network (CNN) trained with TensorFlow/Keras:
+* **Output near `0`**: Authentic Banknote ✅
+* **Output near `1`**: Suspicious / Fake Banknote ❌
 
 ---
 
@@ -89,13 +87,13 @@ pip install -r requirements.txt
 ```
 
 ### 3. Place Dataset & Train the Model
-Due to GitHub's size limitations, the `svm_model.pkl` and raw dataset files are ignored in Git. To train the model locally:
+Due to GitHub's size limitations, the trained model and raw dataset files are ignored in Git. To train the model locally:
 1. Ensure your training dataset is placed under `static/dataset/Real and Fake Currency Dataset/` (divided into `Real Notes` and `Fake Notes` subfolders).
 2. Execute the training script:
    ```bash
    python train_model.py
    ```
-   This will train the model, report test split accuracy, and save the serialized model as `model/svm_model.pkl`.
+   This will train the CNN, report test accuracy, and save the serialized model as `model/cnn_model.h5`.
 
 ### 4. Launch the Web Application
 ```bash
@@ -109,5 +107,5 @@ Open your browser and navigate to `http://127.0.0.1:5000` to start scanning bank
 
 During a deep engineering audit, the following recommendations were identified for production deployment:
 * **Upload Sanitization**: In production, integrate `werkzeug.utils.secure_filename` to prevent path-traversal attacks and whitelist extensions (`.jpg`, `.png`) to block arbitrary script execution.
-* **Model Footprint**: The current SVM is 654MB due to the raw high-dimensional Canny edge space. A planned upgrade involves applying PCA or transitioning to a lightweight Convolutional Neural Network (CNN) such as MobileNetV3 (~10-15MB footprint) to achieve spatial invariance and massive RAM savings.
+* **Model Footprint**: The current implementation uses a CNN saved as `model/cnn_model.h5`. For production, consider a more compact architecture or model quantization to reduce disk usage and inference latency.
 * **Persistence**: Scan logging and metric stats (scans, counts, and accuracy) can be dynamically stored using a lightweight SQLite database instead of hardcoded landing page variables.
