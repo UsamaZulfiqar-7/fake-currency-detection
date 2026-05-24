@@ -9,7 +9,11 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
-model = load_model("model/cnn_model.h5")
+try:
+    model = load_model("model/cnn_model.h5")
+except Exception as e:
+    print(f"[WARNING] Failed to load model: {e}\nPlease wait for the background training to complete.")
+    model = None
 
 
 def allowed_file(filename):
@@ -37,6 +41,9 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+
+    if model is None:
+        return "Model is currently training in the background. Please try again in a few minutes.", 503
 
     if 'file' not in request.files:
         return "No file uploaded", 400
