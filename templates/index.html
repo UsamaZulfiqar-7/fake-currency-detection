@@ -117,9 +117,21 @@
 
                 <p id="fileName"></p>
 
-                <!-- Preview -->
                 <img id="previewImage">
 
+            </div>
+            
+            <!-- Denomination Selection -->
+            <div style="margin-top: 25px; margin-bottom: 5px;">
+                <label for="denomination" style="color: #94a3b8; font-weight: 600; font-size: 16px;">Select Denomination:</label>
+                <select name="denomination" id="denomination" style="padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.1); color: #00ffff; border: 1px solid rgba(0,255,255,0.4); margin-left: 10px; outline: none; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600;">
+                    <option value="5000" style="background: #0f172a;">5000 PKR</option>
+                    <option value="1000" style="background: #0f172a;" selected>1000 PKR</option>
+                    <option value="500" style="background: #0f172a;">500 PKR</option>
+                    <option value="100" style="background: #0f172a;">100 PKR</option>
+                    <option value="50" style="background: #0f172a;">50 PKR</option>
+                    <option value="unknown" style="background: #0f172a;">Unknown Note</option>
+                </select>
             </div>
 
             <!-- Predict -->
@@ -150,8 +162,18 @@
 
     <h2>{{ result }}</h2>
 
-    <img src="{{ url_for('static', filename=image) }}"
-        alt="Uploaded Image">
+    <div class="image-comparison" style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+        <div>
+            <h4 style="color: #94a3b8; margin-bottom: 10px;">Uploaded Image</h4>
+            <img src="{{ url_for('static', filename=image) }}"
+                alt="Uploaded Image" style="margin-top: 0;">
+        </div>
+        <div>
+            <h4 style="color: #94a3b8; margin-bottom: 10px;">Reference Note</h4>
+            <img src="{{ ref_img }}"
+                alt="Reference Note" style="margin-top: 0;">
+        </div>
+    </div>
 
     <!-- Currency Info -->
     <div class="currency-info">
