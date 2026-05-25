@@ -9,11 +9,7 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
-try:
-    model = load_model("model/cnn_model.h5")
-except Exception as e:
-    print(f"[WARNING] Failed to load model: {e}\nPlease wait for the background training to complete.")
-    model = None
+model = load_model("model/cnn_model.h5")
 
 
 def allowed_file(filename):
@@ -21,14 +17,18 @@ def allowed_file(filename):
 
 
 def prepare_image(image_path):
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if img is None:
-        raise ValueError(f"Unable to read image: {image_path}")
-    img = cv2.resize(img, (256, 256))
-    img = img.astype("float32") / 255.0
-    img = np.expand_dims(img, axis=-1)
-    img = np.expand_dims(img, axis=0)
-    return img
+    from PIL import Image
+    try:
+        img = Image.open(image_path)
+        img = img.convert("RGB")
+        img = img.resize((128, 128))
+        img = np.array(img)
+        # MobileNetV2 expects inputs in the range [-1, 1]
+        img = img.astype("float32") / 127.5 - 1.0
+        img = np.expand_dims(img, axis=0)
+        return img
+    except Exception as e:
+        raise ValueError(f"Unable to read image: {image_path}. Details: {e}")
 
 # =========================
 # Routes
@@ -41,9 +41,6 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-
-    if model is None:
-        return "Model is currently training in the background. Please try again in a few minutes.", 503
 
     if 'file' not in request.files:
         return "No file uploaded", 400
@@ -63,24 +60,35 @@ def predict():
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(filepath)
 
-    image_data = prepare_image(filepath)
-    prediction_score = model.predict(image_data)[0][0]
+    try:
+        image_data = prepare_image(filepath)
+    except Exception as e:
+        return f"Error processing image: {str(e)}. The image file might be corrupted, 0 bytes, or an unsupported format.", 400
+
+    prediction_score = model.predict(image_data, verbose=0)[0][0]
     prediction = 0 if prediction_score < 0.5 else 1
     result = "REAL CURRENCY ✅" if prediction == 0 else "FAKE CURRENCY ❌"
 
-    filename_lower = filename.lower()
-    if "5000" in filename_lower:
+    denomination = request.form.get("denomination", "")
+    
+    if denomination == "5000":
         note_type = "5000 PKR"
-    elif "1000" in filename_lower:
+        ref_img = "https://placehold.co/400x200/111827/00ffff?text=Real+5000+PKR+Note"
+    elif denomination == "1000":
         note_type = "1000 PKR"
-    elif "500" in filename_lower:
+        ref_img = "https://placehold.co/400x200/111827/00ffff?text=Real+1000+PKR+Note"
+    elif denomination == "500":
         note_type = "500 PKR"
-    elif "100" in filename_lower:
+        ref_img = "https://placehold.co/400x200/111827/00ffff?text=Real+500+PKR+Note"
+    elif denomination == "100":
         note_type = "100 PKR"
-    elif "50" in filename_lower:
+        ref_img = "https://placehold.co/400x200/111827/00ffff?text=Real+100+PKR+Note"
+    elif denomination == "50":
         note_type = "50 PKR"
+        ref_img = "https://placehold.co/400x200/111827/00ffff?text=Real+50+PKR+Note"
     else:
         note_type = "Unknown Note"
+        ref_img = "https://placehold.co/400x200/111827/00ffff?text=Unknown+Note"
 
     security_status = "Authentic ✅" if prediction == 0 else "Suspicious ❌"
 
@@ -89,7 +97,8 @@ def predict():
         result=result,
         image="uploads/" + filename,
         note_type=note_type,
-        security_status=security_status
+        security_status=security_status,
+        ref_img=ref_img
     )
 
 if __name__ == '__main__':
