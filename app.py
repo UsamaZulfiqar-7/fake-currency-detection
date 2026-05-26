@@ -7,13 +7,12 @@ from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
 model = load_model("model/cnn_model.h5")
 
 
 def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return True
 
 
 def prepare_image(image_path):
@@ -49,8 +48,6 @@ def predict():
 
     if file.filename == '':
         return "No file selected", 400
-    if not allowed_file(file.filename):
-        return "Invalid file type. Upload PNG or JPG images only.", 400
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     filename = secure_filename(file.filename)

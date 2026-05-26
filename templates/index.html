@@ -15,7 +15,7 @@
         rel="stylesheet">
 
     <!-- Lottie -->
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="{{ url_for('static', filename='lottie-player.js') }}"></script>
 
     <!-- CSS -->
     <link rel="stylesheet"
@@ -105,6 +105,7 @@
                 <input type="file"
                     name="file"
                     id="fileInput"
+                    accept="image/*"
                     hidden
                     required>
 
@@ -200,12 +201,6 @@
 
 {% endif %}
 
-    <!-- Sound -->
-    <audio id="scanSound">
-        <source src="{{ url_for('static', filename='scan.mp3') }}"
-            type="audio/mpeg">
-    </audio>
-
     <!-- JavaScript -->
     <script>
 
@@ -255,25 +250,59 @@
 
         });
 
+        function isValidImageFile(file) {
+            if (!file) return false;
+
+            if (file.type && file.type.startsWith("image/")) {
+                return true;
+            }
+
+            const validExtensions = ["png", "jpg", "jpeg", "gif", "bmp", "webp", "tiff", "svg"];
+            const name = file.name || "";
+            const ext = name.split(".").pop().toLowerCase();
+            return validExtensions.includes(ext);
+        }
+
         dragArea.addEventListener("drop",(e)=>{
 
             e.preventDefault();
 
-            fileInput.files = e.dataTransfer.files;
-
-            showPreview(fileInput.files[0]);
-
             dragArea.classList.remove("active");
+
+            const files = e.dataTransfer.files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            if (!isValidImageFile(file)) {
+                alert("Invalid image file. Please upload a valid image.");
+                return;
+            }
+
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            showPreview(file);
 
         });
 
         fileInput.addEventListener("change",()=>{
-
-            showPreview(fileInput.files[0]);
-
+            const file = fileInput.files[0];
+            if (!isValidImageFile(file)) {
+                alert("Invalid image file. Please upload a valid image.");
+                fileInput.value = "";
+                showPreview(null);
+                return;
+            }
+            showPreview(file);
         });
 
         function showPreview(file){
+            if (!file) {
+                fileName.innerText = "";
+                preview.style.display = "none";
+                return;
+            }
 
             fileName.innerText = file.name;
 
@@ -299,7 +328,14 @@
 
             document.getElementById("loader").style.display = "flex";
 
-            document.getElementById("scanSound").play();
+            const scanSound = document.getElementById("scanSound");
+            if (scanSound && typeof scanSound.play === "function") {
+                try {
+                    scanSound.play();
+                } catch (err) {
+                    console.warn("Scan sound failed to play:", err);
+                }
+            }
 
         }
 
