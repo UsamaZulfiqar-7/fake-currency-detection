@@ -7,8 +7,9 @@ A modern, responsive web application for classifying banknotes as **Authentic (R
 ## 🚀 Key Features
 
 * **Interactive Glassmorphism Dashboard**: Sleek and premium dark/light mode dashboard with floating currency particles and vector scanner animations.
-* **Drag-and-Drop Uploader**: Seamless client-side drag-and-drop file interface with real-time image preview.
+* **Drag-and-Drop Uploader**: Seamless client-side drag-and-drop file interface with real-time image preview for all common image formats.
 * **Visual Scanner Simulation**: Synchronous loading bar animation synchronized with an optional auditory indicator upon scanning.
+* **Local Frontend Assets**: Uses a local Lottie player script to avoid external CDN blocking issues.
 * **Convolutional Neural Network**: Uses a CNN-based image classifier for more robust currency authentication.
 
 ---
@@ -100,6 +101,8 @@ Due to GitHub's size limitations, the trained model and raw dataset files are ig
 python app.py
 ```
 Open your browser and navigate to `http://127.0.0.1:5000` to start scanning banknotes.
+
+> Note: The project now includes a local `lottie-player.js` asset, so the dashboard animation works without relying on an external CDN.
 
 ---
 
